@@ -16,6 +16,19 @@ const STACK = [
   { nome: "aider", desc: "CLI de código no terminal, via o atalho ia-cli" },
 ];
 
+const COMANDOS = [
+  {
+    comando: "chat-ia",
+    titulo: "Chat rápido com a IA",
+    desc: "Só texto, sem acesso aos seus arquivos. Ótimo pra tirar dúvida ou pedir um trecho de código. Responde em pt-BR e mostra o tempo de cada resposta.",
+  },
+  {
+    comando: "ia-cli",
+    titulo: "Agente de código (estilo Claude Code)",
+    desc: "Lê e edita seus arquivos, integra com git. Ao abrir já resume o projeto e pergunta o que você quer fazer. Pra editar um arquivo, use /add <arquivo> antes de pedir a mudança.",
+  },
+];
+
 const PASSOS = [
   {
     numero: "1",
@@ -191,6 +204,42 @@ export default function Home() {
                 <code className="shrink-0 rounded-lg bg-[#1c1330] px-3 py-2 font-mono text-xs text-mint">
                   {passo.comando}
                 </code>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* COMANDOS DEPOIS DE INSTALADO */}
+      <section className="relative mx-auto max-w-5xl px-6 py-20">
+        <Reveal className="mx-auto mb-12 max-w-2xl text-center">
+          <h2 className="font-heading text-3xl font-semibold sm:text-4xl">
+            Depois de instalado, é só isso
+          </h2>
+          <p className="mt-3 text-foreground/70">
+            Dois comandos já configurados pra você — sem precisar decorar
+            nenhuma flag.
+          </p>
+        </Reveal>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          {COMANDOS.map((item, i) => (
+            <Reveal key={item.comando} delay={i * 0.1}>
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border shadow-[var(--card-shadow)]">
+                <div className="flex items-center gap-2 bg-[#140c22] px-4 py-3">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 bg-[#1c1330] px-5 pb-6 pt-4">
+                  <code className="font-mono text-lg font-semibold text-mint">
+                    $ {item.comando}
+                  </code>
+                  <span className="font-heading text-sm font-semibold text-white">
+                    {item.titulo}
+                  </span>
+                  <p className="text-sm text-white/60">{item.desc}</p>
+                </div>
               </div>
             </Reveal>
           ))}
