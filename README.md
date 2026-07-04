@@ -34,35 +34,55 @@ bash 01-instalar-rocm.sh
 bash 02-pos-reboot-ollama.sh
 ```
 
-Depois de pronto:
+Depois de pronto, o script deixa dois atalhos (aliases) configurados no seu
+`~/.bashrc` — abra um terminal novo (ou rode `source ~/.bashrc`) e use:
 
 ```bash
-# Chat interativo
-docker exec -it ollama ollama run qwen2.5-coder:7b
+# Chat cru com o modelo, só texto (sem acesso aos seus arquivos)
+chat-ia
 
-# Usando como CLI de código (estilo Claude Code/Cursor)
-aider
+# Agente de código que lê e edita seu projeto (estilo Claude Code/Cursor)
+ia-cli
 ```
 
-## O que é o aider e como ele se conecta ao Ollama
+## Qual a diferença entre `chat-ia` e `ia-cli`?
 
-[Aider](https://aider.chat) é um CLI open source de "pair programming" com IA: você
-descreve o que quer no chat e ele edita os arquivos do seu projeto diretamente,
-committando no git. É o equivalente em terminal ao Claude Code/Cursor, mas
-compatível com vários provedores de LLM (OpenAI, Anthropic, OpenRouter, ou um
-modelo local via Ollama — que é o nosso caso aqui).
+Os dois conversam com o **mesmo modelo** (`qwen2.5-coder:7b` servido pelo
+Ollama), mas são camadas bem diferentes:
 
-O Ollama roda **dentro do Docker**, mas expõe uma API HTTP na porta 11434 do
-host (`-p 11434:11434` no `docker run`). O aider roda **fora** do container
-(instalado no host via `pipx`) e conversa com essa API pela rede — ele não
-precisa nem deve rodar dentro do Docker.
+| | `chat-ia` | `ia-cli` |
+|---|---|---|
+| O que é | Chat cru do Ollama (`docker exec -it ollama ollama run ...`) | Agente de código completo — na verdade é um alias pro [aider](https://aider.chat) |
+| Onde roda | Dentro do container Docker | No seu host, fora do Docker (conversa com o Ollama pela API HTTP na porta 11434) |
+| Acesso aos arquivos | Nenhum — só texto puro, ida e volta | Lê seu repositório e decide quais arquivos importam |
+| Aplica mudança no código | Não — você copia/cola manualmente o que ele responder | Sim — escreve o diff direto no arquivo |
+| Integração com git | Nenhuma | Sim — enxerga o repo e pode até commitar as mudanças |
+| Pra que serve | Perguntas rápidas, tirar dúvida, pedir um trecho de exemplo | Trabalhar de fato num projeto: "adiciona uma função X", "corrige esse bug" |
 
-Por padrão, se você roda `aider` sem `--model`, ele não sabe qual modelo usar
-e tenta te ajudar a escolher, sugerindo criar login no **OpenRouter** (um
-marketplace de LLMs hospedados na nuvem) — o que não faz sentido pra quem já
-tem um modelo local rodando. O script `02-pos-reboot-ollama.sh` evita isso
-criando `~/.aider.conf.yml` com `model: ollama/qwen2.5-coder:7b`, então
-`aider` sozinho já usa o modelo local direto, sem esse onboarding.
+Ou seja: `chat-ia` é só o "cérebro" falando texto. `ia-cli` é esse mesmo
+cérebro conectado a ferramentas que leem e escrevem seus arquivos. No dia a
+dia de código, o que você vai usar é o `ia-cli`.
+
+### Tempo de resposta
+
+O `chat-ia` já roda com `--verbose`, então depois de cada resposta o Ollama
+mostra estatísticas reais (`total duration`, `eval rate` em tokens/s, etc.) —
+útil pra medir se a GPU está rendendo bem.
+
+O `ia-cli` (aider) **não** expõe esse tempo por resposta — não existe flag
+pra isso. Se quiser medir a velocidade real do modelo, use o `chat-ia` como
+referência; o `ia-cli` tende a ser mais lento por request porque manda mais
+contexto (mapa do repositório, arquivos abertos, etc.) a cada pergunta.
+
+### Sobre o `ia-cli` (aider) por baixo dos panos
+
+Por padrão, se você rodasse `aider` puro sem nenhum modelo configurado, ele
+não saberia qual modelo usar e tentaria te ajudar a escolher, sugerindo
+criar login no **OpenRouter** (um marketplace de LLMs hospedados na nuvem) —
+o que não faz sentido pra quem já tem um modelo local rodando. O script
+`02-pos-reboot-ollama.sh` evita isso criando `~/.aider.conf.yml` com
+`model: ollama/qwen2.5-coder:7b`, então o alias `ia-cli` já usa o modelo
+local direto, sem esse onboarding.
 
 Se esse prompt do OpenRouter aparecer de novo, o arquivo `~/.aider.conf.yml`
 não foi criado (rode `bash 02-pos-reboot-ollama.sh` de novo) — nesse caso,

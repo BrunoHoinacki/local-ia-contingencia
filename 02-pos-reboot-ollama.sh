@@ -62,11 +62,22 @@ fi
 export OLLAMA_API_BASE=http://127.0.0.1:11434
 
 echo ""
+echo "=== Criando atalhos chat-ia e ia-cli ==="
+# chat-ia: conversa crua com o modelo (sem acesso a arquivos, so texto).
+# ia-cli:  agente de codigo (le/edita seus arquivos, estilo Claude Code/Cursor).
+if ! grep -q "^alias chat-ia=" "$HOME/.bashrc" 2>/dev/null; then
+  echo "alias chat-ia='docker exec -it ollama ollama run qwen2.5-coder:7b --verbose'" >> "$HOME/.bashrc"
+fi
+if ! grep -q "^alias ia-cli=" "$HOME/.bashrc" 2>/dev/null; then
+  echo "alias ia-cli='aider'" >> "$HOME/.bashrc"
+fi
+
+echo ""
 echo "======================================"
-echo "Tudo pronto! Se o comando 'aider' nao for encontrado, abra um"
-echo "novo terminal (ou rode 'source ~/.bashrc') para o PATH atualizar."
+echo "Tudo pronto! Abra um novo terminal (ou rode 'source ~/.bashrc')"
+echo "para os atalhos abaixo ficarem disponiveis."
 echo ""
 echo "Para usar:"
-echo "  Chat:  docker exec -it ollama ollama run qwen2.5-coder:7b"
-echo "  Aider: aider   (ja usa o modelo local por padrao)"
+echo "  chat-ia  -> chat cru com o modelo (mostra tempo/tokens por segundo)"
+echo "  ia-cli   -> agente de codigo que le/edita seu projeto (via aider)"
 echo "======================================"

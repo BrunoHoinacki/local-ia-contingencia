@@ -13,7 +13,7 @@ const STACK = [
   { nome: "Ollama", desc: "serve o modelo localmente" },
   { nome: "ROCm", desc: "aceleração por GPU AMD" },
   { nome: "qwen2.5-coder:7b", desc: "modelo de código, ~4GB" },
-  { nome: "aider", desc: "CLI de código no terminal" },
+  { nome: "aider", desc: "CLI de código no terminal, via o atalho ia-cli" },
 ];
 
 const PASSOS = [

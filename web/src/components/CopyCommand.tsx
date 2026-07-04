@@ -43,7 +43,9 @@ export function CopyCommand() {
       <p className="border-t border-white/5 px-4 py-3 text-xs text-white/45">
         Depois de rodar, reinicie o PC e execute{" "}
         <code className="text-mint">bash 02-pos-reboot-ollama.sh</code> pra
-        subir o Ollama e já sair codando com o aider.
+        subir o Ollama e ganhar os atalhos{" "}
+        <code className="text-mint">chat-ia</code> e{" "}
+        <code className="text-mint">ia-cli</code> pra já sair codando.
       </p>
     </div>
   );
