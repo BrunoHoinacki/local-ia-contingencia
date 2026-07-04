@@ -54,10 +54,10 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "IA Local de Contingência — robô mascote com bateria carregando",
+        url: "/og-image-local-ia.png",
+        width: 1536,
+        height: 1024,
+        alt: "IA Local de Contingência — robô mascote com bateria carregando, ao lado de um terminal usando o aider",
       },
     ],
   },
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/opengraph-image"],
+    images: ["/og-image-local-ia.png"],
   },
   robots: {
     index: true,

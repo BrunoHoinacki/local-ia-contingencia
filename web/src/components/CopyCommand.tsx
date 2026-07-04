@@ -28,8 +28,8 @@ export function CopyCommand() {
           terminal
         </span>
       </div>
-      <div className="flex items-center gap-3 px-4 py-4">
-        <code className="flex-1 overflow-x-auto whitespace-nowrap font-mono text-[13px] leading-relaxed text-mint sm:text-sm">
+      <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center">
+        <code className="min-w-0 flex-1 break-all font-mono text-[13px] leading-relaxed text-mint sm:whitespace-nowrap sm:overflow-x-auto sm:break-normal sm:text-sm">
           <span className="text-white/40">$ </span>
           {COMMAND}
         </code>
