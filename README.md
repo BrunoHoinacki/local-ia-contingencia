@@ -1,7 +1,16 @@
 # local-ia-contingencia
 
-Setup de uma IA de código local (Ollama + qwen2.5-coder, acelerado por GPU AMD via ROCm)
-para servir como contingência quando serviços de IA em nuvem estiverem fora do ar.
+## O problema
+
+Uso Claude Code, Codex e Antigravity no dia a dia para desenvolver. O problema é que
+os tokens/créditos de todas as ferramentas acabam em algum momento — geralmente ao
+mesmo tempo, no meio de algo — e sem nenhuma delas disponível eu simplesmente fico
+travado, sem conseguir continuar o projeto até renovar os limites.
+
+Este repo resolve isso com uma IA de código **local**, rodando na própria máquina via
+Ollama + ROCm (aceleração por GPU AMD), como fallback/contingência. Ela roda um
+modelo bem menor (qwen2.5-coder:7b) e a qualidade **não chega perto** das ferramentas
+pagas — mas é o suficiente para não ficar 100% parado enquanto os créditos não voltam.
 
 Testado em:
 - Ubuntu 24.04 LTS (noble)
