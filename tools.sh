@@ -97,6 +97,33 @@ EOF
   fi
 }
 
+abrir_chat_ia() {
+  if [ -x "$HOME/.local/bin/chat-ia" ]; then
+    if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx ollama; then
+      echo "Ollama esta parado, subindo antes de abrir o chat..."
+      subir_container_ollama
+      sleep 2
+    fi
+    "$HOME/.local/bin/chat-ia"
+  else
+    echo "chat-ia ainda nao esta instalado -- rode a opcao 2 primeiro."
+  fi
+}
+
+abrir_ia_cli() {
+  if ! command -v aider &> /dev/null; then
+    echo "aider ainda nao esta instalado -- rode a opcao 2 primeiro."
+    return
+  fi
+  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx ollama; then
+    echo "Ollama esta parado, subindo antes de abrir o ia-cli..."
+    subir_container_ollama
+    sleep 2
+  fi
+  export OLLAMA_API_BASE="${OLLAMA_API_BASE:-http://127.0.0.1:11434}"
+  aider --load "$HOME/.aider-startup.aider"
+}
+
 pausa() {
   echo ""
   read -rp "Pressione ENTER pra voltar ao menu... " _
@@ -114,6 +141,8 @@ menu() {
     echo "4) Parar a IA  (derruba o container, libera a GPU)"
     echo "5) Subir a IA  (inicia o container parado)"
     echo "6) Ajustar recursos da IA (CPU/RAM)"
+    echo "7) Abrir chat-ia  (chat rapido, sem acesso a arquivos)"
+    echo "8) Abrir ia-cli   (agente de codigo, estilo Claude Code)"
     echo "0) Sair"
     echo "======================================"
     read -rp "Escolha uma opcao: " opcao
@@ -125,6 +154,8 @@ menu() {
       4) parar_ia; pausa ;;
       5) subir_ia; pausa ;;
       6) ajustar_recursos; pausa ;;
+      7) abrir_chat_ia; pausa ;;
+      8) abrir_ia_cli; pausa ;;
       0) exit 0 ;;
       *) echo "Opcao invalida."; pausa ;;
     esac

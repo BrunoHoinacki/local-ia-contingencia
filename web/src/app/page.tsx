@@ -33,7 +33,7 @@ const PASSOS = [
   {
     numero: "1",
     titulo: "Abre o tools.sh e instala o ROCm",
-    desc: "Um menu cuida dos pacotes certos (inclusive um bug de pacote inexistente no Ubuntu 24.04 que a gente já contornou pra você) e detecta sua GPU automaticamente.",
+    desc: "Um menu detecta sua GPU e cuida dos pacotes certos automaticamente.",
     comando: "bash tools.sh",
   },
   {
@@ -45,7 +45,7 @@ const PASSOS = [
   {
     numero: "3",
     titulo: "Abre o tools.sh de novo e já usa",
-    desc: "Escolha a opção 2 no menu: sobe o Ollama com GPU no Docker, baixa o modelo e configura aider/chat-ia/ia-cli — pronto pra codar.",
+    desc: "Escolha a opção 2: sobe o Ollama, baixa o modelo e configura chat-ia/ia-cli.",
     comando: "bash tools.sh",
   },
 ];
