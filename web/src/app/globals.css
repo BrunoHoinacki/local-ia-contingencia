@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdf6ec;
+  --foreground: #241b2f;
+  --surface: #ffffff;
+  --primary: #7c3aed;
+  --primary-strong: #5b21b6;
+  --accent: #ff9f43;
+  --accent-strong: #f7712d;
+  --mint: #2dd4bf;
+  --border: #ece1cf;
+  --card-shadow: 0 20px 45px -20px rgba(124, 58, 237, 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-mint: var(--mint);
+  --color-border: var(--border);
+  --font-heading: var(--font-fredoka);
+  --font-sans: var(--font-inter);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #16101f;
+    --foreground: #f4ecff;
+    --surface: #211830;
+    --primary: #a780ff;
+    --primary-strong: #c4a8ff;
+    --accent: #ffb35c;
+    --accent-strong: #ffc98a;
+    --mint: #5eead4;
+    --border: #372a4c;
+    --card-shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.55);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1deg);
+  }
+}
+
+@keyframes blob-morph {
+  0%,
+  100% {
+    border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%;
+  }
+  50% {
+    border-radius: 60% 40% 35% 65% / 55% 60% 40% 45%;
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(18px, -18px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.animate-blob {
+  animation: blob-morph 9s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 2.4s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.animate-drift {
+  animation: drift 12s ease-in-out infinite;
+}
