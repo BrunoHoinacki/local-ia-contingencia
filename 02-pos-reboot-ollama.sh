@@ -24,7 +24,13 @@ sleep 5
 
 echo ""
 echo "=== [3/3] Baixando modelo qwen2.5-coder:7b (~4GB) ==="
-docker exec -it ollama ollama pull qwen2.5-coder:7b
+# -t so funciona com um terminal de verdade; sem isso, "docker exec -it"
+# quebra quando o script roda de forma nao-interativa (cron, CI, etc).
+if [ -t 0 ]; then
+  docker exec -it ollama ollama pull qwen2.5-coder:7b
+else
+  docker exec -i ollama ollama pull qwen2.5-coder:7b
+fi
 
 echo ""
 echo "=== Instalando aider (CLI de codigo) ==="
@@ -44,7 +50,16 @@ echo "=== Configurando o aider para usar o Ollama local por padrao ==="
 # configurar um provedor na nuvem (OpenRouter) em vez do Ollama local.
 cat > "$HOME/.aider.conf.yml" <<'YAML'
 model: ollama/qwen2.5-coder:7b
+show-model-warnings: false
 YAML
+
+# Sem OLLAMA_API_BASE, o aider avisa (com link pra doc) que a variavel
+# nao esta definida antes de cada resposta. O Ollama do Docker ja expoe
+# a API em 127.0.0.1:11434, entao so precisamos declarar isso uma vez.
+if ! grep -q "^export OLLAMA_API_BASE=" "$HOME/.bashrc" 2>/dev/null; then
+  echo 'export OLLAMA_API_BASE=http://127.0.0.1:11434' >> "$HOME/.bashrc"
+fi
+export OLLAMA_API_BASE=http://127.0.0.1:11434
 
 echo ""
 echo "======================================"
