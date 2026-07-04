@@ -6,13 +6,18 @@ rocminfo | grep "Agent 2" -A 5
 
 echo ""
 echo "=== [2/3] Subindo Ollama com ROCm no Docker ==="
-docker run -d \
-  --device /dev/kfd \
-  --device /dev/dri \
-  -v ollama:/root/.ollama \
-  -p 11434:11434 \
-  --name ollama \
-  ollama/ollama:rocm
+if docker ps -a --format '{{.Names}}' | grep -qx ollama; then
+  echo "Container 'ollama' ja existe, iniciando..."
+  docker start ollama
+else
+  docker run -d \
+    --device /dev/kfd \
+    --device /dev/dri \
+    -v ollama:/root/.ollama \
+    -p 11434:11434 \
+    --name ollama \
+    ollama/ollama:rocm
+fi
 
 echo "Aguardando Ollama iniciar..."
 sleep 5
@@ -23,11 +28,22 @@ docker exec -it ollama ollama pull qwen2.5-coder:7b
 
 echo ""
 echo "=== Instalando aider (CLI de codigo) ==="
-pip install aider-chat
+# NOTA: Ubuntu 24.04 nao tem "pip" no PATH por padrao e, mesmo com
+# python3-pip instalado, o PEP 668 bloqueia "pip install" fora de um venv
+# ("externally-managed-environment"). pipx resolve isso instalando o aider
+# em um venv isolado automaticamente.
+if ! command -v pipx &> /dev/null; then
+  sudo apt install -y pipx
+fi
+pipx install aider-chat
+pipx ensurepath
 
 echo ""
 echo "======================================"
-echo "Tudo pronto! Para usar:"
+echo "Tudo pronto! Se o comando 'aider' nao for encontrado, abra um"
+echo "novo terminal (ou rode 'source ~/.bashrc') para o PATH atualizar."
+echo ""
+echo "Para usar:"
 echo "  Chat:  docker exec -it ollama ollama run qwen2.5-coder:7b"
 echo "  Aider: aider --model ollama/qwen2.5-coder:7b"
 echo "======================================"

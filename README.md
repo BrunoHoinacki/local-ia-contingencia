@@ -61,6 +61,17 @@ script, a mensagem de "sucesso" aparece mesmo assim.
 para este caso de uso. Os demais 17 pacotes (`rocminfo`, `rocm-smi`, `hipcc`,
 `librocblas0`, etc.) existem normalmente nos repositórios padrão do Ubuntu 24.04.
 
+## Problema conhecido: `pip: command not found`
+
+O Ubuntu 24.04 não vem com `pip` no PATH por padrão e, mesmo instalando
+`python3-pip`, o PEP 668 bloqueia `pip install` fora de um virtualenv
+(erro `externally-managed-environment`).
+
+**A solução usada aqui:** o script `02-pos-reboot-ollama.sh` instala o aider via
+`pipx`, que cria um venv isolado automaticamente para o CLI. Se o comando
+`aider` não for encontrado depois do script rodar, abra um novo terminal (ou
+rode `source ~/.bashrc`) para o PATH atualizar.
+
 ## Verificando se a GPU foi detectada
 
 ```bash

@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://ia-local.forcoder.com.br/sitemap.xml",
+    sitemap: "https://local-ia.forcoder.com.br/sitemap.xml",
   };
 }

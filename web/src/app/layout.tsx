@@ -13,10 +13,10 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://ia-local.forcoder.com.br";
-const title = "IA Local de Contingência — quando os créditos acabam, o código continua";
+const siteUrl = "https://local-ia.forcoder.com.br";
+const title = "IA Local de Contingência — quando os créditos acabam";
 const description =
-  "Setup open source de uma IA de código local (Ollama + ROCm + qwen2.5-coder), rodando na sua própria GPU AMD, para servir de fallback quando Claude Code, Codex ou Antigravity ficarem sem créditos.";
+  "Setup open source de IA local (Ollama + ROCm) na sua GPU AMD, pra não travar quando os créditos do Claude Code, Codex ou Antigravity acabarem.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
