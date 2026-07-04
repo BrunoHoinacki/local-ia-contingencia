@@ -52,8 +52,8 @@ Ollama), mas são camadas bem diferentes:
 
 | | `chat-ia` | `ia-cli` |
 |---|---|---|
-| O que é | Chat cru do Ollama (`docker exec -it ollama ollama run ...`) | Agente de código completo — na verdade é um alias pro [aider](https://aider.chat) |
-| Onde roda | Dentro do container Docker | No seu host, fora do Docker (conversa com o Ollama pela API HTTP na porta 11434) |
+| O que é | Script próprio que fala com a API do Ollama | Agente de código completo — na verdade é um alias pro [aider](https://aider.chat) |
+| Onde roda | No seu host (`~/.local/bin/chat-ia`), conversa com o Ollama pela API HTTP na porta 11434 | No seu host também, mesma API |
 | Acesso aos arquivos | Nenhum — só texto puro, ida e volta | Lê seu repositório e decide quais arquivos importam |
 | Aplica mudança no código | Não — você copia/cola manualmente o que ele responder | Sim — escreve o diff direto no arquivo |
 | Integração com git | Nenhuma | Sim — enxerga o repo e pode até commitar as mudanças |
@@ -63,16 +63,25 @@ Ou seja: `chat-ia` é só o "cérebro" falando texto. `ia-cli` é esse mesmo
 cérebro conectado a ferramentas que leem e escrevem seus arquivos. No dia a
 dia de código, o que você vai usar é o `ia-cli`.
 
-### Tempo de resposta
+### `chat-ia`: idioma, cores e tempo de resposta
 
-O `chat-ia` já roda com `--verbose`, então depois de cada resposta o Ollama
-mostra estatísticas reais (`total duration`, `eval rate` em tokens/s, etc.) —
-útil pra medir se a GPU está rendendo bem.
+`chat-ia` não é um alias — é um script em `~/.local/bin/chat-ia` (criado pelo
+`02-pos-reboot-ollama.sh`) que fala direto com a API do Ollama via `curl` +
+`jq`. Isso dá controle total sobre a experiência:
 
-O `ia-cli` (aider) **não** expõe esse tempo por resposta — não existe flag
-pra isso. Se quiser medir a velocidade real do modelo, use o `chat-ia` como
-referência; o `ia-cli` tende a ser mais lento por request porque manda mais
-contexto (mapa do repositório, arquivos abertos, etc.) a cada pergunta.
+- Responde sempre em **pt-BR** por padrão (system prompt fixo).
+- Mostra um spinner (`⠋ pensando...`) enquanto espera a resposta, já que o
+  modelo pode demorar vários segundos nessa GPU.
+- Diferencia visualmente **você** (ciano) da **ia** (verde) e mostra só o
+  tempo total da resposta (`⏱ 9.9s`) em vez do bloco inteiro de estatísticas
+  do `ollama run --verbose`.
+- Mantém o histórico da conversa durante a sessão (mas sem acesso a arquivos
+  — é só texto). Pra sair, digite `/bye`.
+
+O `ia-cli` (aider) **não** expõe tempo de resposta por padrão — não existe
+flag pra isso. Use o `chat-ia` como referência de velocidade; o `ia-cli`
+tende a ser mais lento por request porque manda mais contexto (mapa do
+repositório, arquivos abertos, etc.) a cada pergunta.
 
 ### Sobre o `ia-cli` (aider) por baixo dos panos
 
@@ -81,12 +90,26 @@ não saberia qual modelo usar e tentaria te ajudar a escolher, sugerindo
 criar login no **OpenRouter** (um marketplace de LLMs hospedados na nuvem) —
 o que não faz sentido pra quem já tem um modelo local rodando. O script
 `02-pos-reboot-ollama.sh` evita isso criando `~/.aider.conf.yml` com
-`model: ollama/qwen2.5-coder:7b`, então o alias `ia-cli` já usa o modelo
-local direto, sem esse onboarding.
+`model: ollama/qwen2.5-coder:7b` e `chat-language: pt-BR`, então o alias
+`ia-cli` já usa o modelo local direto (sem onboarding) e responde em
+português por padrão.
 
 Se esse prompt do OpenRouter aparecer de novo, o arquivo `~/.aider.conf.yml`
 não foi criado (rode `bash 02-pos-reboot-ollama.sh` de novo) — nesse caso,
 force o modelo manualmente com `aider --model ollama/qwen2.5-coder:7b`.
+
+Ao abrir, `ia-cli` já manda um `/ask` automático pedindo pro modelo resumir
+a estrutura do projeto (repo-map) e perguntar o que você quer fazer — parecido
+com a saudação inicial do Claude Code. Isso pode levar alguns segundos nesse
+modelo. Pra sair da sessão, o comando é `/exit` (não `/bye` — isso é coisa
+do Ollama, não do aider).
+
+**Importante:** o repo-map só tem os *nomes* dos arquivos, não o conteúdo. Pra
+aider realmente ler e editar um arquivo, adicione-o à conversa primeiro com
+`/add caminho/do/arquivo.py` (ou abra com `aider --file arquivo.py`). Sem
+isso, o modelo pequeno costuma responder "não tenho acesso aos seus
+arquivos" — o que é impreciso: ele tem acesso, só não sabe pedir pra
+adicionar o arquivo como um modelo maior (Claude, GPT) faria automaticamente.
 
 ## Problema conhecido: `rocm-opencl-icd`
 
