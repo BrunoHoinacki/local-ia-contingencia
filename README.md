@@ -24,18 +24,40 @@ Testado em:
 
 ## Uso
 
+Tudo passa por um menu interativo, o `tools.sh` — pode fechar e abrir de novo
+a qualquer momento (inclusive logo depois do reboot):
+
 ```bash
-# 1. Instala os pacotes ROCm e adiciona seu usuário aos grupos necessários
-bash 01-instalar-rocm.sh
-
-# 2. Reinicie o PC (necessário para os grupos render/video e módulos de kernel)
-
-# 3. Sobe o Ollama no Docker com aceleração ROCm, baixa o modelo e instala o aider
-bash 02-pos-reboot-ollama.sh
+bash tools.sh
 ```
 
-Depois de pronto, o script deixa dois atalhos (aliases) configurados no seu
-`~/.bashrc` — abra um terminal novo (ou rode `source ~/.bashrc`) e use:
+```
+======================================
+ IA Local de Contingencia -- tools.sh
+======================================
+1) Instalar ROCm            (rodar ANTES do 1o reboot)
+2) Configurar Ollama + aider (rodar DEPOIS do reboot)
+3) Status (GPU, container, modelo, aider)
+4) Parar a IA  (derruba o container, libera a GPU)
+5) Subir a IA  (inicia o container parado)
+0) Sair
+======================================
+```
+
+Fluxo típico: abra o `tools.sh`, escolha **1** (instala os pacotes ROCm e
+detecta sua GPU automaticamente — não precisa configurar nada manualmente,
+mesmo em outra máquina), reinicie o PC, abra o `tools.sh` de novo e escolha
+**2** (sobe o Ollama, baixa o modelo e configura `aider`/`chat-ia`/`ia-cli`).
+Depois disso, use a opção **3** sempre que quiser conferir se está tudo
+rodando (e se a GPU está mesmo sendo usada), e **4**/**5** pra parar/subir a
+IA quando quiser liberar ou usar a GPU de novo.
+
+As opções 1 e 2 são as mesmas rotinas dos scripts `01-instalar-rocm.sh` e
+`02-pos-reboot-ollama.sh` — ainda dá pra rodar cada um separadamente se
+preferir, o `tools.sh` só empacota tudo num lugar só.
+
+Depois de configurado (opção 2), você tem dois atalhos disponíveis em
+qualquer terminal novo (ou rode `source ~/.bashrc`):
 
 ```bash
 # Chat cru com o modelo, só texto (sem acesso aos seus arquivos)

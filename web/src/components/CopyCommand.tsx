@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const COMMAND =
-  "git clone https://github.com/BrunoHoinacki/local-ia-contingencia.git && cd local-ia-contingencia && bash 01-instalar-rocm.sh";
+  "git clone https://github.com/BrunoHoinacki/local-ia-contingencia.git && cd local-ia-contingencia && bash tools.sh";
 
 export function CopyCommand() {
   const [copied, setCopied] = useState(false);
@@ -41,11 +41,12 @@ export function CopyCommand() {
         </button>
       </div>
       <p className="border-t border-white/5 px-4 py-3 text-xs text-white/45">
-        Depois de rodar, reinicie o PC e execute{" "}
-        <code className="text-mint">bash 02-pos-reboot-ollama.sh</code> pra
-        subir o Ollama e ganhar os atalhos{" "}
+        O <code className="text-mint">tools.sh</code> abre um menu: escolha{" "}
+        <strong>1</strong> pra instalar o ROCm, reinicie o PC, rode{" "}
+        <code className="text-mint">bash tools.sh</code> de novo e escolha{" "}
+        <strong>2</strong> pra subir o Ollama e ganhar os atalhos{" "}
         <code className="text-mint">chat-ia</code> e{" "}
-        <code className="text-mint">ia-cli</code> pra já sair codando.
+        <code className="text-mint">ia-cli</code>.
       </p>
     </div>
   );

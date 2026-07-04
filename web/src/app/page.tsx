@@ -32,9 +32,9 @@ const COMANDOS = [
 const PASSOS = [
   {
     numero: "1",
-    titulo: "Instala o ROCm",
-    desc: "Um script cuida dos pacotes certos (inclusive um bug de pacote inexistente no Ubuntu 24.04 que a gente já contornou pra você).",
-    comando: "bash 01-instalar-rocm.sh",
+    titulo: "Abre o tools.sh e instala o ROCm",
+    desc: "Um menu cuida dos pacotes certos (inclusive um bug de pacote inexistente no Ubuntu 24.04 que a gente já contornou pra você) e detecta sua GPU automaticamente.",
+    comando: "bash tools.sh",
   },
   {
     numero: "2",
@@ -44,9 +44,9 @@ const PASSOS = [
   },
   {
     numero: "3",
-    titulo: "Sobe o Ollama e já usa",
-    desc: "Sobe o Ollama com GPU no Docker, baixa o modelo e instala o aider — pronto pra codar.",
-    comando: "bash 02-pos-reboot-ollama.sh",
+    titulo: "Abre o tools.sh de novo e já usa",
+    desc: "Escolha a opção 2 no menu: sobe o Ollama com GPU no Docker, baixa o modelo e configura aider/chat-ia/ia-cli — pronto pra codar.",
+    comando: "bash tools.sh",
   },
 ];
 
