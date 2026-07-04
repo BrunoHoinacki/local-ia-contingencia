@@ -1,65 +1,16 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-ollama.sh
+source "$SCRIPT_DIR/lib-ollama.sh"
+
 echo "=== [1/3] Verificando ROCm ==="
 rocminfo | grep "Agent 2" -A 5
 
-# Detecta o gfx target real da GPU (ex: gfx1032 na RX 6600) e decide se
-# precisa de HSA_OVERRIDE_GFX_VERSION. O Ollama/rocBLAS so tem suporte
-# oficial a uma lista fechada de alvos (gfx1030, gfx11xx, etc.); GPUs
-# RDNA2 "de consumo" fora dessa lista (gfx1031/1032/1034/1035/1036 --
-# RX 6700/6600/6500/6400) sao silenciosamente rebaixadas pra CPU sem
-# isso, sem nenhum erro visivel -- so rodam bem mais devagar.
-GFX_TARGET=$(rocminfo | grep "Agent 2" -A 5 | grep "  Name:" | awk '{print $2}')
-HSA_OVERRIDE=""
-case "$GFX_TARGET" in
-  gfx1030|gfx1100|gfx1101|gfx1102|gfx1150|gfx1151|gfx1200|gfx1201|gfx908|gfx90a|gfx942|gfx950)
-    echo "GPU $GFX_TARGET ja e suportada nativamente pelo ROCm, sem override."
-    ;;
-  gfx103*)
-    echo "GPU $GFX_TARGET nao esta na lista oficial do rocBLAS; usando"
-    echo "HSA_OVERRIDE_GFX_VERSION=10.3.0 pra mapear pra gfx1030 (mesma familia RDNA2)."
-    HSA_OVERRIDE="10.3.0"
-    ;;
-  *)
-    echo "AVISO: GPU $GFX_TARGET desconhecida pro rocBLAS. Se a inferencia"
-    echo "cair pra CPU (confira com 'docker exec ollama ollama ps'), pode"
-    echo "ser necessario setar HSA_OVERRIDE_GFX_VERSION manualmente."
-    ;;
-esac
-
 echo ""
 echo "=== [2/3] Subindo Ollama com ROCm no Docker ==="
-ENV_ARGS=()
-if [ -n "$HSA_OVERRIDE" ]; then
-  ENV_ARGS=(-e "HSA_OVERRIDE_GFX_VERSION=$HSA_OVERRIDE")
-fi
-
-NEEDS_RECREATE=1
-if docker ps -a --format '{{.Names}}' | grep -qx ollama; then
-  CURRENT_OVERRIDE=$(docker inspect ollama --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^HSA_OVERRIDE_GFX_VERSION=//p')
-  if [ "$CURRENT_OVERRIDE" = "$HSA_OVERRIDE" ]; then
-    NEEDS_RECREATE=0
-  fi
-fi
-
-if [ "$NEEDS_RECREATE" = 0 ]; then
-  echo "Container 'ollama' ja existe com a config de GPU certa, iniciando..."
-  docker start ollama
-else
-  if docker ps -a --format '{{.Names}}' | grep -qx ollama; then
-    echo "Container 'ollama' existe mas com config de GPU desatualizada -- recriando..."
-    docker rm -f ollama > /dev/null
-  fi
-  docker run -d \
-    --device /dev/kfd \
-    --device /dev/dri \
-    "${ENV_ARGS[@]}" \
-    -v ollama:/root/.ollama \
-    -p 11434:11434 \
-    --name ollama \
-    ollama/ollama:rocm
-fi
+subir_container_ollama
 
 echo "Aguardando Ollama iniciar..."
 sleep 5

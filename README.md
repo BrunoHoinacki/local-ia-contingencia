@@ -40,6 +40,7 @@ bash tools.sh
 3) Status (GPU, container, modelo, aider)
 4) Parar a IA  (derruba o container, libera a GPU)
 5) Subir a IA  (inicia o container parado)
+6) Ajustar recursos da IA (CPU/RAM)
 0) Sair
 ======================================
 ```
@@ -49,12 +50,16 @@ detecta sua GPU automaticamente — não precisa configurar nada manualmente,
 mesmo em outra máquina), reinicie o PC, abra o `tools.sh` de novo e escolha
 **2** (sobe o Ollama, baixa o modelo e configura `aider`/`chat-ia`/`ia-cli`).
 Depois disso, use a opção **3** sempre que quiser conferir se está tudo
-rodando (e se a GPU está mesmo sendo usada), e **4**/**5** pra parar/subir a
-IA quando quiser liberar ou usar a GPU de novo.
+rodando (e se a GPU está mesmo sendo usada), **4**/**5** pra parar/subir a
+IA quando quiser liberar ou usar a GPU de novo, e **6** pra limitar quanta
+CPU/RAM o container pode usar (pergunta os valores, mostra o antes/depois e
+só recria o container depois que você confirmar).
 
 As opções 1 e 2 são as mesmas rotinas dos scripts `01-instalar-rocm.sh` e
 `02-pos-reboot-ollama.sh` — ainda dá pra rodar cada um separadamente se
-preferir, o `tools.sh` só empacota tudo num lugar só.
+preferir, o `tools.sh` só empacota tudo num lugar só. A lógica de subir o
+container (detecção de GPU + limites de recursos) fica em `lib-ollama.sh`,
+compartilhada entre `tools.sh` e `02-pos-reboot-ollama.sh`.
 
 Depois de configurado (opção 2), você tem dois atalhos disponíveis em
 qualquer terminal novo (ou rode `source ~/.bashrc`):
