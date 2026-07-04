@@ -41,8 +41,32 @@ Depois de pronto:
 docker exec -it ollama ollama run qwen2.5-coder:7b
 
 # Usando como CLI de código (estilo Claude Code/Cursor)
-aider --model ollama/qwen2.5-coder:7b
+aider
 ```
+
+## O que é o aider e como ele se conecta ao Ollama
+
+[Aider](https://aider.chat) é um CLI open source de "pair programming" com IA: você
+descreve o que quer no chat e ele edita os arquivos do seu projeto diretamente,
+committando no git. É o equivalente em terminal ao Claude Code/Cursor, mas
+compatível com vários provedores de LLM (OpenAI, Anthropic, OpenRouter, ou um
+modelo local via Ollama — que é o nosso caso aqui).
+
+O Ollama roda **dentro do Docker**, mas expõe uma API HTTP na porta 11434 do
+host (`-p 11434:11434` no `docker run`). O aider roda **fora** do container
+(instalado no host via `pipx`) e conversa com essa API pela rede — ele não
+precisa nem deve rodar dentro do Docker.
+
+Por padrão, se você roda `aider` sem `--model`, ele não sabe qual modelo usar
+e tenta te ajudar a escolher, sugerindo criar login no **OpenRouter** (um
+marketplace de LLMs hospedados na nuvem) — o que não faz sentido pra quem já
+tem um modelo local rodando. O script `02-pos-reboot-ollama.sh` evita isso
+criando `~/.aider.conf.yml` com `model: ollama/qwen2.5-coder:7b`, então
+`aider` sozinho já usa o modelo local direto, sem esse onboarding.
+
+Se esse prompt do OpenRouter aparecer de novo, o arquivo `~/.aider.conf.yml`
+não foi criado (rode `bash 02-pos-reboot-ollama.sh` de novo) — nesse caso,
+force o modelo manualmente com `aider --model ollama/qwen2.5-coder:7b`.
 
 ## Problema conhecido: `rocm-opencl-icd`
 

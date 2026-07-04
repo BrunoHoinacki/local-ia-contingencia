@@ -39,11 +39,19 @@ pipx install aider-chat
 pipx ensurepath
 
 echo ""
+echo "=== Configurando o aider para usar o Ollama local por padrao ==="
+# Sem isso, "aider" (sem --model) nao sabe que modelo usar e oferece
+# configurar um provedor na nuvem (OpenRouter) em vez do Ollama local.
+cat > "$HOME/.aider.conf.yml" <<'YAML'
+model: ollama/qwen2.5-coder:7b
+YAML
+
+echo ""
 echo "======================================"
 echo "Tudo pronto! Se o comando 'aider' nao for encontrado, abra um"
 echo "novo terminal (ou rode 'source ~/.bashrc') para o PATH atualizar."
 echo ""
 echo "Para usar:"
 echo "  Chat:  docker exec -it ollama ollama run qwen2.5-coder:7b"
-echo "  Aider: aider --model ollama/qwen2.5-coder:7b"
+echo "  Aider: aider   (ja usa o modelo local por padrao)"
 echo "======================================"
