@@ -139,6 +139,33 @@ O Ubuntu 24.04 não vem com `pip` no PATH por padrão e, mesmo instalando
 `aider` não for encontrado depois do script rodar, abra um novo terminal (ou
 rode `source ~/.bashrc`) para o PATH atualizar.
 
+## Problema conhecido: inferência caindo pra CPU sem avisar (RX 6600/6700/6500...)
+
+Em GPUs RDNA2 "de consumo" (RX 6600, 6650, 6700, 6500, 6400 — alvo `gfx1031`,
+`gfx1032`, `gfx1034`, `gfx1035`, `gfx1036`), o rocBLAS do Ollama **não** tem
+esses alvos na lista de suportados oficialmente. Sem nenhum erro visível, o
+Ollama simplesmente roda o modelo inteiro na CPU (`ollama ps` mostra
+`100% CPU`) — na prática, isso deixava o `qwen2.5-coder:7b` girando a ~7
+tokens/s numa RX 6600, quando a mesma GPU entrega ~35+ tokens/s (5x mais
+rápido) usando o ROCm de verdade.
+
+Dá pra confirmar se está acontecendo com você:
+
+```bash
+docker exec ollama ollama ps
+# PROCESSOR deveria mostrar algo como "100% GPU", nao "100% CPU"
+```
+
+**A solução usada aqui:** `02-pos-reboot-ollama.sh` detecta o alvo real da
+sua GPU via `rocminfo` e, se ele não estiver na lista suportada mas for da
+família RDNA2 (`gfx103*`), sobe o container com
+`-e HSA_OVERRIDE_GFX_VERSION=10.3.0` — isso mapeia a GPU pra `gfx1030`
+(alvo oficialmente suportado, mesma arquitetura), destravando a aceleração
+real. Em GPUs já suportadas nativamente (RX 6800/6900 = `gfx1030`, RDNA3
+inteira = `gfx11xx`) esse override **não** é aplicado, porque forçá-lo
+nessas placas seria incorreto. Se rodar numa GPU fora dessas listas, o
+script avisa e você pode setar `HSA_OVERRIDE_GFX_VERSION` manualmente.
+
 ## Verificando se a GPU foi detectada
 
 ```bash
