@@ -9,8 +9,9 @@ travado, sem conseguir continuar o projeto até renovar os limites.
 
 Este repo resolve isso com uma IA de código **local**, rodando na própria máquina via
 Ollama + ROCm (aceleração por GPU AMD), como fallback/contingência. Ela roda um
-modelo bem menor (qwen2.5-coder:7b) e a qualidade **não chega perto** das ferramentas
-pagas — mas é o suficiente para não ficar 100% parado enquanto os créditos não voltam.
+modelo de código bem menor que você escolhe na instalação (pela VRAM da sua GPU) e
+a qualidade **não chega perto** das ferramentas pagas — mas é o suficiente para não
+ficar 100% parado enquanto os créditos não voltam.
 
 Testado em:
 - Ubuntu 24.04 LTS (noble)
@@ -41,6 +42,9 @@ bash tools.sh
 4) Parar a IA  (derruba o container, libera a GPU)
 5) Subir a IA  (inicia o container parado)
 6) Ajustar recursos da IA (CPU/RAM)
+7) Abrir chat-ia  (chat rapido, sem acesso a arquivos)
+8) Abrir ia-cli   (agente de codigo, estilo Claude Code)
+9) Trocar modelo da IA (baixa outro e atualiza aider/chat-ia)
 0) Sair
 ======================================
 ```
@@ -48,12 +52,14 @@ bash tools.sh
 Fluxo típico: abra o `tools.sh`, escolha **1** (instala os pacotes ROCm e
 detecta sua GPU automaticamente — não precisa configurar nada manualmente,
 mesmo em outra máquina), reinicie o PC, abra o `tools.sh` de novo e escolha
-**2** (sobe o Ollama, baixa o modelo e configura `aider`/`chat-ia`/`ia-cli`).
-Depois disso, use a opção **3** sempre que quiser conferir se está tudo
-rodando (e se a GPU está mesmo sendo usada), **4**/**5** pra parar/subir a
-IA quando quiser liberar ou usar a GPU de novo, e **6** pra limitar quanta
-CPU/RAM o container pode usar (pergunta os valores, mostra o antes/depois e
-só recria o container depois que você confirmar).
+**2** (sobe o Ollama, pergunta qual modelo instalar — veja a lista de opções
+mais abaixo — e configura `aider`/`chat-ia`/`ia-cli`). Depois disso, use a
+opção **3** sempre que quiser conferir se está tudo rodando (e se a GPU está
+mesmo sendo usada), **4**/**5** pra parar/subir a IA quando quiser liberar ou
+usar a GPU de novo, **6** pra limitar quanta CPU/RAM o container pode usar
+(pergunta os valores, mostra o antes/depois e só recria o container depois
+que você confirmar), e **9** pra trocar de modelo depois, sem reinstalar
+nada.
 
 As opções 1 e 2 são as mesmas rotinas dos scripts `01-instalar-rocm.sh` e
 `02-pos-reboot-ollama.sh` — ainda dá pra rodar cada um separadamente se
@@ -74,8 +80,8 @@ ia-cli
 
 ## Qual a diferença entre `chat-ia` e `ia-cli`?
 
-Os dois conversam com o **mesmo modelo** (`qwen2.5-coder:7b` servido pelo
-Ollama), mas são camadas bem diferentes:
+Os dois conversam com o **mesmo modelo** (o que você escolheu na instalação,
+servido pelo Ollama), mas são camadas bem diferentes:
 
 | | `chat-ia` | `ia-cli` |
 |---|---|---|
@@ -117,13 +123,14 @@ não saberia qual modelo usar e tentaria te ajudar a escolher, sugerindo
 criar login no **OpenRouter** (um marketplace de LLMs hospedados na nuvem) —
 o que não faz sentido pra quem já tem um modelo local rodando. O script
 `02-pos-reboot-ollama.sh` evita isso criando `~/.aider.conf.yml` com
-`model: ollama/qwen2.5-coder:7b` e `chat-language: pt-BR`, então o alias
-`ia-cli` já usa o modelo local direto (sem onboarding) e responde em
-português por padrão.
+`model: ollama/<modelo escolhido na instalação>`, `chat-language: pt-BR` e
+`auto-commits: false`, então o alias `ia-cli` já usa o modelo local direto
+(sem onboarding), responde em português por padrão e **não commita sozinho**
+— toda alteração fica pra você revisar (`/diff`) e commitar manualmente.
 
 Se esse prompt do OpenRouter aparecer de novo, o arquivo `~/.aider.conf.yml`
 não foi criado (rode `bash 02-pos-reboot-ollama.sh` de novo) — nesse caso,
-force o modelo manualmente com `aider --model ollama/qwen2.5-coder:7b`.
+force o modelo manualmente com `aider --model ollama/<modelo>`.
 
 Ao abrir, `ia-cli` já manda um `/ask` automático pedindo pro modelo resumir
 a estrutura do projeto (repo-map) e perguntar o que você quer fazer — parecido
@@ -144,6 +151,46 @@ aider realmente ler e editar um arquivo, adicione-o à conversa primeiro com
 isso, o modelo pequeno costuma responder "não tenho acesso aos seus
 arquivos" — o que é impreciso: ele tem acesso, só não sabe pedir pra
 adicionar o arquivo como um modelo maior (Claude, GPT) faria automaticamente.
+
+## Escolhendo e trocando o modelo
+
+Este repo **não fica preso a um único modelo**. Na opção **2** do `tools.sh`
+(`02-pos-reboot-ollama.sh`), depois de subir o Ollama, o script mostra uma
+lista curada de modelos de código e pergunta qual instalar, pela VRAM da sua
+GPU:
+
+| Modelo | Download | VRAM recomendada | Perfil |
+|---|---|---|---|
+| `qwen2.5-coder:7b` | ~4GB | 6-8GB | leve e rápido, bom padrão pra GPUs menores |
+| `deepseek-coder-v2:16b` | ~9GB | 10-12GB | MoE (16B total, poucos parâmetros ativos por token): rápido e competente |
+| `qwen2.5-coder:14b` | ~9GB | 12-16GB | mais coerente que o 7b em tarefas maiores |
+| `codestral:22b` | ~13GB | 16-24GB | modelo de código da Mistral, bom equilíbrio |
+| `qwen2.5-coder:32b` | ~19GB | 24GB+ | o mais forte da família Qwen coder pra rodar local |
+
+Essa lista é curada até jan/2026 — sempre sai modelo novo de código, então
+antes de escolher vale conferir [ollama.com/library?q=coder](https://ollama.com/library?q=coder)
+pra ver se apareceu algo melhor. A última opção do menu ("Outro") aceita
+qualquer tag do Ollama digitada manualmente, então a lista nunca prende
+ninguém a um modelo velho.
+
+Pra trocar de modelo depois, sem reinstalar nada, use a opção **9** do
+`tools.sh` ("Trocar modelo da IA"): ela baixa o novo modelo, reaponta
+`aider` e `chat-ia` pra ele e pergunta se quer remover o modelo anterior do
+disco.
+
+## `ia-cli` explicando antes de editar
+
+O `02-pos-reboot-ollama.sh` também cria `~/.aider-conventions.md` e registra
+esse arquivo como `read:` no `~/.aider.conf.yml` — ele fica sempre carregado
+(somente leitura) na conversa do `ia-cli`, com instruções tipo "explique o
+que pretende mudar e pergunte antes de editar, a menos que o pedido já seja
+uma instrução direta" e "não edite arquivo que não foi pedido".
+
+Isso é **melhor esforço**, não garantia: modelo local pequeno segue
+instrução bem pior que um modelo grande, então ele ainda pode sair editando
+sem avisar de vez em quando. Some isso ao `auto-commits: false` (o `ia-cli`
+não commita mais sozinho) e, na pior hipótese, dá pra descartar uma edição
+ruim revisando com `/diff` antes de aceitar, sem nem precisar mexer em git.
 
 ## Problema conhecido: `rocm-opencl-icd`
 

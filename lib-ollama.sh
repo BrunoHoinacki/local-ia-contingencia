@@ -97,3 +97,112 @@ subir_container_ollama() {
       ollama/ollama:rocm
   fi
 }
+
+# Lista curada ate jan/2026 de modelos de codigo que rodam bem via Ollama.
+# Ja saiu (ou vai sair) coisa mais nova -- antes de escolher, vale conferir
+# https://ollama.com/library?q=coder. A opcao "outro" do menu aceita
+# qualquer tag do Ollama, entao a lista nunca trava ninguem num modelo velho.
+# Formato de cada entrada: tag|download aproximado|VRAM recomendada|descricao
+MODELOS_CODIGO=(
+  "qwen2.5-coder:7b|~4GB|6-8GB|leve e rapido, bom padrao pra GPUs menores"
+  "deepseek-coder-v2:16b|~9GB|10-12GB|MoE (16B total, poucos parametros ativos por token): rapido e competente"
+  "qwen2.5-coder:14b|~9GB|12-16GB|mais coerente que o 7b em tarefas maiores"
+  "codestral:22b|~13GB|16-24GB|modelo de codigo da Mistral, bom equilibrio"
+  "qwen2.5-coder:32b|~19GB|24GB+|o mais forte da familia Qwen coder pra rodar local"
+)
+
+# Pergunta ao usuario qual modelo instalar/trocar. Define MODELO_ESCOLHIDO.
+escolher_modelo() {
+  echo ""
+  echo "=== Qual modelo de codigo usar? ==="
+  echo "Escolha pela VRAM da sua GPU (modelo maior = melhor qualidade, porem mais"
+  echo "lento e com mais uso de memoria). Lista curada ate jan/2026 -- de olho em"
+  echo "https://ollama.com/library?q=coder pra ver se saiu algo melhor nesse meio tempo."
+  echo ""
+  local i=1
+  for entry in "${MODELOS_CODIGO[@]}"; do
+    IFS='|' read -r tag download vram desc <<< "$entry"
+    printf "  %d) %-22s (%s download, %s VRAM) -- %s\n" "$i" "$tag" "$download" "$vram" "$desc"
+    i=$((i + 1))
+  done
+  echo "  $i) Outro (digitar o nome do modelo manualmente)"
+  echo ""
+  local padrao_tag
+  padrao_tag="${MODELOS_CODIGO[0]%%|*}"
+  read -rp "Opcao [ENTER = 1, $padrao_tag]: " escolha
+  escolha="${escolha:-1}"
+
+  if [ "$escolha" = "$i" ]; then
+    read -rp "Nome do modelo no Ollama (ex: llama3.1:8b): " MODELO_ESCOLHIDO
+  elif [[ "$escolha" =~ ^[0-9]+$ ]] && [ "$escolha" -ge 1 ] && [ "$escolha" -lt "$i" ]; then
+    IFS='|' read -r MODELO_ESCOLHIDO _ _ _ <<< "${MODELOS_CODIGO[$((escolha - 1))]}"
+  else
+    echo "Opcao invalida, usando o padrao ($padrao_tag)."
+    MODELO_ESCOLHIDO="$padrao_tag"
+  fi
+  echo "Modelo escolhido: $MODELO_ESCOLHIDO"
+}
+
+# Baixa o modelo escolhido no container do Ollama.
+baixar_modelo() {
+  local modelo="$1"
+  echo ""
+  echo "=== Baixando modelo $modelo ==="
+  # -t so funciona com um terminal de verdade; sem isso, "docker exec -it"
+  # quebra quando o script roda de forma nao-interativa (cron, CI, etc).
+  if [ -t 0 ]; then
+    docker exec -it ollama ollama pull "$modelo"
+  else
+    docker exec -i ollama ollama pull "$modelo"
+  fi
+}
+
+CONVENTIONS_FILE="$HOME/.aider-conventions.md"
+
+# Arquivo somente-leitura sempre carregado no ia-cli (via "read:" no
+# aider.conf.yml) com instrucoes de comportamento -- tenta corrigir o
+# habito do aider de sair editando/commitando direto sem perguntar.
+# E "melhor esforco": modelo pequeno local nao segue instrucao tao bem
+# quanto um modelo grande, mas ajuda bastante.
+criar_conventions() {
+  cat > "$CONVENTIONS_FILE" <<'CONV'
+# Como este agente deve se comportar
+
+- Antes de editar qualquer arquivo, explique em poucas linhas o que pretende
+  mudar e pergunte se pode aplicar -- a menos que o pedido do usuario ja seja
+  uma instrucao direta e especifica (ex.: "corrige a funcao X pra fazer Y",
+  "adiciona um campo Z na tabela W").
+- Se o pedido for vago ou aberto (ex.: "qual o proximo passo", "o que voce
+  acha", "leia o roadmap e me diga"), responda com analise e pergunta, e NAO
+  edite nenhum arquivo ainda. Espere o usuario confirmar o que ele quer.
+- Nunca edite ou sobrescreva um arquivo que nao foi mencionado ou pedido
+  explicitamente na conversa, mesmo que pareca relacionado.
+- Prefira mudancas minimas e cirurgicas no arquivo certo. Nunca reescreva um
+  arquivo inteiro quando a intencao e uma alteracao pontual.
+- Depois de aplicar uma mudanca, diga em 1-2 linhas o que foi alterado e em
+  qual arquivo.
+CONV
+}
+
+# Aponta aider (~/.aider.conf.yml) e chat-ia pro modelo escolhido. Funciona
+# tanto na instalacao inicial quanto pra trocar de modelo depois -- por isso
+# fica na lib compartilhada em vez de duplicado em cada script.
+atualizar_config_modelo() {
+  local modelo="$1"
+  if [ ! -f "$CONVENTIONS_FILE" ]; then
+    criar_conventions
+  fi
+  cat > "$HOME/.aider.conf.yml" <<YAML
+model: ollama/$modelo
+show-model-warnings: false
+chat-language: pt-BR
+auto-commits: false
+read:
+  - $CONVENTIONS_FILE
+YAML
+
+  if [ -f "$HOME/.local/bin/chat-ia" ]; then
+    sed -i "s|^MODEL=.*|MODEL=\"$modelo\"|" "$HOME/.local/bin/chat-ia"
+  fi
+  echo "Config atualizada: aider e chat-ia agora usam $modelo."
+}

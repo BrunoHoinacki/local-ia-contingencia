@@ -16,14 +16,9 @@ echo "Aguardando Ollama iniciar..."
 sleep 5
 
 echo ""
-echo "=== [3/3] Baixando modelo qwen2.5-coder:7b (~4GB) ==="
-# -t so funciona com um terminal de verdade; sem isso, "docker exec -it"
-# quebra quando o script roda de forma nao-interativa (cron, CI, etc).
-if [ -t 0 ]; then
-  docker exec -it ollama ollama pull qwen2.5-coder:7b
-else
-  docker exec -i ollama ollama pull qwen2.5-coder:7b
-fi
+echo "=== [3/3] Escolhendo e baixando o modelo de codigo ==="
+escolher_modelo
+baixar_modelo "$MODELO_ESCOLHIDO"
 
 echo ""
 echo "=== Instalando aider (CLI de codigo) ==="
@@ -39,14 +34,12 @@ pipx ensurepath
 
 echo ""
 echo "=== Configurando o aider para usar o Ollama local por padrao ==="
-# Sem isso, "aider" (sem --model) nao sabe que modelo usar e oferece
-# configurar um provedor na nuvem (OpenRouter) em vez do Ollama local.
-# chat-language forca as respostas em pt-BR por padrao.
-cat > "$HOME/.aider.conf.yml" <<'YAML'
-model: ollama/qwen2.5-coder:7b
-show-model-warnings: false
-chat-language: pt-BR
-YAML
+# Recria sempre do zero pra pegar atualizacoes de instrucao deste script.
+criar_conventions
+# A escrita de fato do ~/.aider.conf.yml (com o modelo escolhido acima) fica
+# pra depois de criar o chat-ia, via atualizar_config_modelo -- ela mexe nos
+# dois arquivos de uma vez (funcao compartilhada com o "trocar modelo" do
+# tools.sh).
 
 # Sem OLLAMA_API_BASE, o aider avisa (com link pra doc) que a variavel
 # nao esta definida antes de cada resposta. O Ollama do Docker ja expoe
@@ -70,7 +63,7 @@ fi
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/chat-ia" <<'SCRIPT'
 #!/bin/bash
-MODEL="qwen2.5-coder:7b"
+MODEL="__MODELO_PLACEHOLDER__"
 API="http://127.0.0.1:11434/api/chat"
 SYSTEM_PROMPT="Você é um assistente de programação. Responda sempre em português do Brasil (pt-BR), de forma direta e objetiva, a menos que o usuário peça outro idioma."
 
@@ -128,6 +121,11 @@ while true; do
 done
 SCRIPT
 chmod +x "$HOME/.local/bin/chat-ia"
+
+# Agora que aider e chat-ia ja existem, aponta os dois pro modelo escolhido
+# no passo 3 (substitui o placeholder do heredoc acima e escreve o
+# ~/.aider.conf.yml final).
+atualizar_config_modelo "$MODELO_ESCOLHIDO"
 
 # versoes antigas do script deixavam "chat-ia" como alias no bashrc;
 # remove pra nao sombrear o script novo em ~/.local/bin.

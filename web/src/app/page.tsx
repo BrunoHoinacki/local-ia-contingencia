@@ -12,7 +12,7 @@ const TOOLS_SEM_CREDITO = [
 const STACK = [
   { nome: "Ollama", desc: "serve o modelo localmente" },
   { nome: "ROCm", desc: "aceleração por GPU AMD" },
-  { nome: "qwen2.5-coder:7b", desc: "modelo de código, ~4GB" },
+  { nome: "Modelo de código à sua escolha", desc: "qwen2.5-coder, deepseek-coder-v2, codestral... você escolhe pela VRAM da GPU" },
   { nome: "aider", desc: "CLI de código no terminal, via o atalho ia-cli" },
 ];
 
@@ -45,7 +45,7 @@ const PASSOS = [
   {
     numero: "3",
     titulo: "Abre o tools.sh de novo e já usa",
-    desc: "Escolha a opção 2: sobe o Ollama, baixa o modelo e configura chat-ia/ia-cli.",
+    desc: "Escolha a opção 2: sobe o Ollama, pergunta qual modelo instalar (pela VRAM da sua GPU) e configura chat-ia/ia-cli.",
     comando: "bash tools.sh",
   },
 ];
@@ -255,11 +255,11 @@ export default function Home() {
               Um combinado antes de continuar
             </h3>
             <p className="max-w-lg text-sm text-foreground/70 sm:text-base">
-              Esse modelo local <strong>não é páreo</strong> pras ferramentas pagas —
-              é bem menor e mais limitado. Mas é o suficiente pra destravar tarefas
-              simples e não deixar o projeto 100% parado enquanto os créditos não
-              voltam. Contingência é isso: não precisa ser perfeito, precisa estar
-              disponível.
+              Esses modelos locais <strong>não são páreo</strong> pras ferramentas pagas —
+              são bem menores e mais limitados, mesmo escolhendo o maior que sua GPU
+              aguenta. Mas é o suficiente pra destravar tarefas simples e não deixar o
+              projeto 100% parado enquanto os créditos não voltam. Contingência é isso:
+              não precisa ser perfeito, precisa estar disponível.
             </p>
           </div>
         </Reveal>

@@ -124,6 +124,40 @@ abrir_ia_cli() {
   aider --load "$HOME/.aider-startup.aider"
 }
 
+trocar_modelo() {
+  if ! command -v aider &> /dev/null; then
+    echo "aider ainda nao esta instalado -- rode a opcao 2 primeiro."
+    return
+  fi
+
+  local modelo_atual=""
+  if [ -f "$HOME/.aider.conf.yml" ]; then
+    modelo_atual=$(sed -n 's/^model: ollama\///p' "$HOME/.aider.conf.yml")
+  fi
+  echo "Modelo atual: ${modelo_atual:-nenhum configurado}"
+
+  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx ollama; then
+    echo "Ollama esta parado, subindo antes de trocar o modelo..."
+    subir_container_ollama
+    sleep 2
+  fi
+
+  escolher_modelo
+  baixar_modelo "$MODELO_ESCOLHIDO"
+  atualizar_config_modelo "$MODELO_ESCOLHIDO"
+
+  if [ -n "$modelo_atual" ] && [ "$modelo_atual" != "$MODELO_ESCOLHIDO" ]; then
+    read -rp "Remover o modelo anterior ($modelo_atual) do Ollama pra liberar espaco em disco? (s/N) " remover
+    if [[ "$remover" =~ ^[sS]$ ]]; then
+      docker exec ollama ollama rm "$modelo_atual"
+      echo "Modelo $modelo_atual removido."
+    fi
+  fi
+
+  echo ""
+  echo "Pronto! ia-cli e chat-ia ja usam $MODELO_ESCOLHIDO a partir de agora."
+}
+
 pausa() {
   echo ""
   read -rp "Pressione ENTER pra voltar ao menu... " _
@@ -143,6 +177,7 @@ menu() {
     echo "6) Ajustar recursos da IA (CPU/RAM)"
     echo "7) Abrir chat-ia  (chat rapido, sem acesso a arquivos)"
     echo "8) Abrir ia-cli   (agente de codigo, estilo Claude Code)"
+    echo "9) Trocar modelo da IA (baixa outro e atualiza aider/chat-ia)"
     echo "0) Sair"
     echo "======================================"
     read -rp "Escolha uma opcao: " opcao
@@ -156,6 +191,7 @@ menu() {
       6) ajustar_recursos; pausa ;;
       7) abrir_chat_ia; pausa ;;
       8) abrir_ia_cli; pausa ;;
+      9) trocar_modelo; pausa ;;
       0) exit 0 ;;
       *) echo "Opcao invalida."; pausa ;;
     esac
