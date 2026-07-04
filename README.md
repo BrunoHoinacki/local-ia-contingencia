@@ -131,6 +131,13 @@ com a saudação inicial do Claude Code. Isso pode levar alguns segundos nesse
 modelo. Pra sair da sessão, o comando é `/exit` (não `/bye` — isso é coisa
 do Ollama, não do aider).
 
+Logo depois dessa saudação, pode aparecer a mensagem `Command '/ask ...' is
+only supported in interactive mode, skipping.` — é **cosmética e inofensiva**:
+o `/ask` sempre tenta trocar de "modo" de chat depois de responder, e isso
+não é permitido dentro de um `--load`, mas a resposta em si (o resumo e a
+pergunta) já apareceu completa antes dessa mensagem. O chat continua normal
+depois.
+
 **Importante:** o repo-map só tem os *nomes* dos arquivos, não o conteúdo. Pra
 aider realmente ler e editar um arquivo, adicione-o à conversa primeiro com
 `/add caminho/do/arquivo.py` (ou abra com `aider --file arquivo.py`). Sem
